@@ -23,8 +23,16 @@ app.post('/todos', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log(`App is listening to port 3000`);
+app.get('/todos', (req, res) => {
+    toDo.find().then((todos) => {
+        res.send({todos})
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
+app.listen(3001, () => {
+    console.log(`App is listening to port 3001`);
 });
 
 
