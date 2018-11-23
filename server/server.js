@@ -1,8 +1,8 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 
-var {mongoose} = require('./db/mongoose')
-var {toDo} = require('./models/toDo');
+var {mongoose} = require('./db/mongoose');
+var {toDo} = require('./models/todo');
 var {user} = require('./models/user');
 
 var app = express();
@@ -20,9 +20,12 @@ app.post('/todos', (req, res) => {
         res.send(doc);
     }, (err) => {
         res.status(400).send(err);
-    })
-},);
+    });
+});
 
 app.listen(3000, () => {
     console.log(`App is listening to port 3000`);
-})
+});
+
+
+module.exports = {app};
