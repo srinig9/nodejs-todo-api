@@ -8,3 +8,7 @@ const {ObjectID} = require('mongodb');
 toDo.remove({}).then((result) => {
     console.log(results);
 });
+
+//toDo.findOneAndRemove
+//toDo.findByIdAndRemove
+

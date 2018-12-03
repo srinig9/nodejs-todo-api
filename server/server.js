@@ -1,5 +1,6 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+const _ = require("lodash");
+const express = require('express');
+const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 
 var {mongoose} = require('./db/mongoose');
@@ -38,9 +39,9 @@ app.get("/todos/:id", (req, res) => {
     if (!ObjectID.isValid(id)) {
         res.status(404).send("Invalid ID")
     }else{
-        toDo.findById(id).then((user) => {
-            if (user) {
-                res.send(user);
+        toDo.findById(id).then((todo) => {
+            if (todo) {
+                res.send(todo);
             }else{
                 res.status(400).send();
             }
@@ -53,9 +54,23 @@ app.get("/todos/:id", (req, res) => {
 
 app.delete('/todos/:id', (req, res) => {
     //get the id
-
+    var id = req.params.id;
+ 
     //validate the id and return 404
-
+    if (!ObjectID.isValid(id)) {
+        res.status(404).send("Invalid ID");
+    }else{
+        toDo.findByIdAndDelete(id).then((todo) => {
+            if (todo) {
+                res.send(todo);
+            }else{
+                res.status(400).send();
+            }
+                
+        }, (err) => {
+            res.status(400).send();
+        });
+    }
     //remove todo by id
         //success
             //if no doc, send 404
@@ -63,6 +78,35 @@ app.delete('/todos/:id', (req, res) => {
         //error
             //400 with empty body
 });
+
+app.patch("/todos/:id", (req, res) => {
+    var id = req.params.id;
+    var body = _.pick(req.body, ['text', 'completed']);
+    if(!ObjectID.isValid(id)) {
+        return res.status(404).send("Invalid ID");
+    }
+    if (body.completed && _.isBoolean(body.completed)) {
+        body.completedAt = new Date().getTime();
+    }else{
+        body.completed = false;
+        body.completedAt = null;
+     }
+     toDo.findByIdAndUpdate(id, {
+         $set: body
+     }, {
+         new: true
+     }).then((todo) => {
+         if (todo) {
+            return res.send({todo});
+         }else{
+             return res.status(404).send();
+         }
+    }, (err) => {
+        return res.status(404).send();
+    }).catch((e) => {
+        res.status(400).send();
+    });
+})
 
 app.listen(port, () => {
     console.log(`App is listening to port ${port}`);
