@@ -1,7 +1,9 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const {ObjectID} = require('mongodb');
+
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -23,7 +25,7 @@ var UserSchema = new mongoose.Schema({
         minlength: 6
     },
     tokens: [{
-        acees: {
+        access: {
             type: String,
             require: true
         },
@@ -33,6 +35,26 @@ var UserSchema = new mongoose.Schema({
         }
     }]
 });
+
+UserSchema.statics.findByToken = function(token) {
+    var User = this;
+    var decoded;
+    try {
+        decoded = jwt.verify(token, 'abc123');
+    } catch (e) {
+        // return new Promise((resolve, reject) => {
+        //     reject();
+        // });
+        return Promise.reject(); //Use this code instead of above
+    }
+    var uId = new ObjectID(decoded._id);
+ 
+    return User.findOne({
+        'tokens.token': token,
+        'tokens.access': 'auth',
+        '_id': ObjectID(decoded._id)
+    });
+};
 
 //Override toJSON method
 UserSchema.methods.toJSON = function() {
@@ -48,9 +70,9 @@ UserSchema.methods.generateAuthToken = function() {
     var token = jwt.sign({_id: userInst._id.toHexString(), access}, 'abc123').toString();
     console.log('Token', token);
     userInst.tokens.push({access, token});
-
+    console.log('Tokens', userInst.tokens);
     return userInst.save().then(() => {
-        console.log('Saving Token', token);
+        console.log('Saving User Token', userInst);
         return token;
     });
 };

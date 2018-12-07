@@ -8,6 +8,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {toDo} = require('./models/todo');
 var {user} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate')
 
 var app = express();
 const port = process.env.PORT;
@@ -119,7 +120,7 @@ app.post('/users', (req, res) => {
         return oUser.generateAuthToken();
         //res.send(user);
     }).then((token) => {
-        res.header('x-auth', token).send(oUser.toJSON());
+        res.header('x-auth', token).send(oUser);
     }).catch((e) => {
         res.status(400).send(e);
     });
@@ -129,5 +130,8 @@ app.listen(port, () => {
     console.log(`App is listening to port ${port}`);
 });
 
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 module.exports = {app};
