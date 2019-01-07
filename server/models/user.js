@@ -73,6 +73,29 @@ UserSchema.statics.findByToken = function(token) {
     });
 };
 
+UserSchema.statics.findByCredentials = function(email, password) {
+    var userInst = this;
+    return userInst.findOne({email}).then((user) => {
+        if (user) {
+            return new Promise((resolve, reject) => {
+                bcrypt.compare(password, user.password, (err, result) => {
+                    if (err) {
+                        reject();
+                    }else{
+                        if (result) {
+                            resolve(user);
+                        }else{
+                            reject();
+                        }
+                    }
+                });
+            });
+        }else{
+            return Promise.reject();
+        }
+    })
+};
+
 //Override toJSON method
 UserSchema.methods.toJSON = function() {
     var userInst = this;

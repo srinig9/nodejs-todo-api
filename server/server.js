@@ -4,6 +4,7 @@ const _ = require("lodash");
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
+const bcrypt = require('bcryptjs');
 
 var {mongoose} = require('./db/mongoose');
 var {toDo} = require('./models/todo');
@@ -124,6 +125,38 @@ app.post('/users', (req, res) => {
     }).catch((e) => {
         res.status(400).send(e);
     });
+});
+
+// POST /users/login {email, password}
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+  
+    user.findByCredentials(body.email, body.password).then((userInst) => {
+        //res.send(userInst);
+        return userInst.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(userInst);
+        });
+    }).catch((e) => {
+        res.status(400).send();
+    });
+
+    // user.find({
+    //     email: body.email
+    // }).then((userInsts) => {
+    //     console.log(userInsts[0]);
+    //     bcrypt.compare(body.password, userInsts[0].password, (err, bcryptRes) => {
+    //         console.log(userInsts[0].password);
+    //         if (err) {
+    //             return res.status(400).send('Error occured in comparing password', err);
+    //         }
+
+    //         if (bcryptRes) {
+    //             res.status(200).send(userInsts[0]);
+    //         }else{
+    //             res.status(401).send('User not found');
+    //         }
+    //     });
+    //  });
 });
 
 app.listen(port, () => {
